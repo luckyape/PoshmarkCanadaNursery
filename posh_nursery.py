@@ -30,9 +30,10 @@ class Posh_Nursery:
         self.scrollWaitTime = 5
         self.numTimesToScroll = 5
         self.chrome_options = Options()
-        # self.chrome_options.add_argument("--headless")
-        # self.chrome_options.add_argument("--window-size=1920x1080")
-        self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.chrome_options.add_argument("--headless")
+        self.chrome_options.headless = True
+        self.chrome_options.add_argument("--window-size=1920x1080")
+        self.driver = webdriver.Chrome("/usr/local/bin/chromedriver")
         self.loginUrl = "https://poshmark.ca/login"
         self.closetUrl = "https://poshmark.ca/closet"
         self.shareNewsUrl = "https://poshmark.ca/news/share"
@@ -52,7 +53,7 @@ class Posh_Nursery:
             "//button[@class='btn btn--close modal__close-btn simple-modal-close']"
         )
         self.closetNameXPath = "//p[@class='wb--ww tc--g']//a"  # used for sharing back
-        self.followButtonXPath = "//button[@class='al--right btn follow__btn m--l--2 m--r--1 btn--primary']"  # used to follow
+        self.followButtonXPath = "//button[@class='al--right btn follow__btn btn--primary m--l--2 m--r--1']"  # used to follow
         if maintainOrder:
             self.orderTextFile = "order.txt"
         else:
@@ -290,29 +291,40 @@ class Posh_Nursery:
             count += 1
 
     def getAndPrintItemNames(self):
-        for count, itemName in enumerate(self.itemNameElements):
-            itemNameTxt = itemName.text
-            self.itemNames.append(itemNameTxt)
-            if self.debug:
-                print(str(count) + ": " + itemNameTxt)
+        time.sleep(2)
+        self.itemNameElements = self.driver.find_elements(
+            By.XPATH, "//a[@class='tile__title tc--b']"
+        )
+
+        for count, itemNameElement in enumerate(self.itemNameElements):
+            itemName = itemNameElement.text.strip()
+            self.itemNames.append(itemName)
+            print(f"{count+1}. {itemName}")
 
     def getItemNames(self, shareAFew=False):
-        self.itemNameElements = self.driver.find_elements_by_xpath(self.itemNameXPath)
+        print("Counting items...")
+        self.itemNameElements = self.driver.find_elements(
+            By.XPATH, "//a[@class='tile__title tc--b']"
+        )
+        print("Counted", len(self.itemNameElements))
         if shareAFew:
             closetSize = len(self.itemNameElements)
+            print("Items to share " + str(closetSize))
             if closetSize > self.numItemsToShareFromOtherClosets:
-                for i in range(0, closetSize - self.numItemsToShareFromOtherClosets):
-                    self.itemNameElements.pop()
+                del self.itemNameElements[self.numItemsToShareFromOtherClosets :]
         self.getAndPrintItemNames()
 
     def getShareButtons(self, shareAFew=False):
-        self.shareButtons = self.driver.find_elements_by_xpath(self.firstShareXPath)
+        self.shareButtons = self.driver.find_elements(
+            By.XPATH, "//i[@class='icon share-gray-large']"
+        )
         self.closetSize = len(self.shareButtons)
         if shareAFew and self.closetSize > self.numItemsToShareFromOtherClosets:
             for i in range(0, self.closetSize - self.numItemsToShareFromOtherClosets):
                 self.shareButtons.pop()
 
     def clickAButton(self, button):
+        print("clicking share?")
         try:
             self.driver.execute_script("arguments[0].click();", button)
         except Exception as e:
@@ -369,7 +381,7 @@ class Posh_Nursery:
     def checkForCaptcha(self, modalTitleXPath):
         modalTitle = ""
         try:
-            modalTitle = self.driver.find_element_by_xpath(modalTitleXPath).text
+            modalTitle = self.driver.find_element(By.XPATH, modalTitleXPath).text
         except Exception as e:
             if self.debug:
                 print("      No modal, no captcha")
@@ -553,17 +565,24 @@ class Posh_Nursery:
         self.driver.get(self.shareNewsUrl)
         self.scrollPageANumTimes()
         self.waitForAnElementByXPath(self.closetNameXPath, "closetNameXPath")
-        closetNames = self.driver.find_elements_by_xpath(self.closetNameXPath)
+        closetNameElements = self.driver.find_elements(
+            By.XPATH, "//a[contains(@href, '/closet/')]"
+        )
+        # closetNames = [element.text.strip() for element in closetNameElements]
+        print("Number of closet name elements:", len(closetNameElements))
         closetNamesSet = set()
-        for n in closetNames:
-            closetNamesSet.add(n.text)
+        for element in closetNameElements:
+            closetName = element.get_attribute("href").split("/")[-1]
+            print(closetName)
+            closetNamesSet.add(closetName)
+
         print(closetNamesSet)
 
-        for closet in closetNamesSet:
-            if closet not in self.closetSharedBack:
-                print("sharing " + closet)
-                self.shareAnotherCloset(closet, sharingAFew)
-                self.closetSharedBack.append(closet)
+        for closetName in closetNamesSet:
+            if closetName not in self.closetSharedBack:
+                print("sharing " + closetName)
+                self.shareAnotherCloset(closetName, sharingAFew)
+                self.closetSharedBack.append(closetName)
                 self.followACloset()
 
     def getClosetsToShareFromFile(self):
