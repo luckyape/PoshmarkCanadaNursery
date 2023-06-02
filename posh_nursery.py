@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -23,6 +24,9 @@ class Posh_Nursery:
         maintainOrder=False,
         shareBack=False,
     ):
+        chrome_driver_path = "/usr/local/bin/chromedriver"
+        service = Service(chrome_driver_path)
+
         self.username = username
         self.password = password
         self.numItemsToShareFromOtherClosets = 8
@@ -33,7 +37,8 @@ class Posh_Nursery:
         self.chrome_options.add_argument("--headless")
         self.chrome_options.headless = True
         self.chrome_options.add_argument("--window-size=1920x1080")
-        self.driver = webdriver.Chrome("/usr/local/bin/chromedriver")
+        self.driver = webdriver.Chrome(service=service)
+
         self.loginUrl = "https://poshmark.ca/login"
         self.closetUrl = "https://poshmark.ca/closet"
         self.shareNewsUrl = "https://poshmark.ca/news/share"
@@ -324,7 +329,6 @@ class Posh_Nursery:
                 self.shareButtons.pop()
 
     def clickAButton(self, button):
-        print("clicking share?")
         try:
             self.driver.execute_script("arguments[0].click();", button)
         except Exception as e:
