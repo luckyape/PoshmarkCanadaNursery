@@ -12,7 +12,7 @@ I started reselling some of my clothes on Poshmark in the summer of 2019 and hav
 # Setup
 Clone the source locally:
 ```
-git clone https://github.com/xzhou13/PoshmarkCanagaNursery
+git clone https://github.com/luckyape/PoshmarkCanagaNursery
 ```
 
 Modify the "config.py" file to contain your Poshmark login and password within the "". 
