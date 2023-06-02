@@ -33,10 +33,10 @@ class Posh_Nursery:
         # self.chrome_options.add_argument("--headless")
         # self.chrome_options.add_argument("--window-size=1920x1080")
         self.driver = webdriver.Chrome(options=self.chrome_options)
-        self.loginUrl = "https://poshmark.com/login"
-        self.closetUrl = "https://poshmark.com/closet"
-        self.shareNewsUrl = "https://poshmark.com/news/share"
-        self.closetStatsUrl = "https://poshmark.com/users/self/closet_stats"
+        self.loginUrl = "https://poshmark.ca/login"
+        self.closetUrl = "https://poshmark.ca/closet"
+        self.shareNewsUrl = "https://poshmark.ca/news/share"
+        self.closetStatsUrl = "https://poshmark.ca/users/self/closet_stats"
         self.statsXPath = "((//div[@class='stats-container__border stats__content'])[1]//h1[@class='posh-stats__value'])[1]"
         self.loginID = "login_form_username_email"
         self.loginXPath = "//input[@name='userHandle']"
